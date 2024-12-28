@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shark Twibbon Creator</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .page-title {
+        color: #2c3e50;
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 2.5em;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        animation: fadeIn 1s ease-in;
+    }
+
+    .author {
+        text-align: center;
+        color: #666;
+        font-style: italic;
+        margin-bottom: 20px;
+        animation: slideInUp 1s ease-out;
+    }
+
+    #canvasContainer {
+        width: 100%;
+        max-width: 500px;
+        margin: auto;
+        border: 3px solid #fff;
+        border-radius: 10px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+        animation: zoomIn 1s ease-out;
+    }
+
+    #canvasContainer:hover {
+        transform: scale(1.02);
+    }
+
+    canvas {
+        width: 100%;
+        height: auto;
+        background: #fff;
+    }
+
+    .controls-panel {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        animation: fadeInUp 1s ease-out;
+    }
+
+    .joystick-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 15px;
+    }
+
+    .joystick-btn {
+        width: 40px;
+        height: 40px;
+        margin: 5px;
+        border-radius: 50%;
+        border: none;
+        background: #3498db;
+        color: white;
+        font-size: 18px;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .joystick-btn:hover {
+        transform: scale(1.1);
+        background: #2980b9;
+    }
+
+    .joystick-btn:active {
+        transform: scale(0.95);
+    }
+
+    #saveImage {
+        background: #2ecc71;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 25px;
+        color: white;
+        font-weight: bold;
+        margin: 20px auto;
+        display: block;
+        transition: all 0.3s ease;
+        animation: pulse 2s infinite;
+    }
+
+    #saveImage:hover {
+        background: #27ae60;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .custom-file {
+        margin-bottom: 20px;
+    }
+
+    .custom-file-label {
+        background: #fff;
+        border-radius: 25px;
+        padding: 10px 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .custom-file-label:hover {
+        background: #f8f9fa;
+    }
+
+    #zoomControl {
+        width: 100%;
+        height: 25px;
+        -webkit-appearance: none;
+        background: #dfe6e9;
+        border-radius: 12.5px;
+        transition: all 0.3s ease;
+    }
+
+    #zoomControl::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 25px;
+        height: 25px;
+        background: #3498db;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    #zoomControl::-webkit-slider-thumb:hover {
+        background: #2980b9;
+        transform: scale(1.1);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideInUp {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+</style>
+</head>
+<body>
+
+<div class="container mt-5">
+    <h1 class="page-title animate__animated animate__fadeIn">🦈 Shark Twibbon Creator</h1>
+    <p class="author animate__animated animate__fadeInUp">Created with ♥ by Arsya & Maira</p>
+    
+    <div class="custom-file mb-3 animate__animated animate__fadeInLeft">
+        <input type="file" class="custom-file-input" id="imageUpload" accept="image/*">
+        <label class="custom-file-label" for="imageUpload">Choose your photo...</label>
+    </div>
+
+    <div id="canvasContainer" class="animate__animated animate__zoomIn">
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <div class="controls-panel animate__animated animate__fadeInUp">
+        <div class="row">
+            <div class="col-md-6">
+                <label for="zoomControl">Zoom Level:</label>
+                <input type="range" id="zoomControl" min="0.1" max="2" value="1" step="0.1">
+            </div>
+            <div class="col-md-6">
+                <div class="joystick-container">
+                    <button id="moveUp" class="joystick-btn">↑</button>
+                    <div class="d-flex">
+                        <button id="moveLeft" class="joystick-btn">←</button>
+                        <button id="moveRight" class="joystick-btn">→</button>
+                    </div>
+                    <button id="moveDown" class="joystick-btn">↓</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn" id="saveImage">Download Your Twibbon 🎉</button>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<script>
+// Your existing JavaScript code remains the same
+var canvas = document.getElementById('canvas');
+var ctx = canvas.getContext('2d');
+var image = new Image();
+var twibbon = new Image();
+var scale = 1;
+var position = { x: 0, y: 0 };
+var dragStart, dragged;
+var MOVE_AMOUNT = 10;
+
+// Add smooth animation to movement
+function animateMovement(fromX, fromY, toX, toY) {
+    const frames = 10;
+    const deltaX = (toX - fromX) / frames;
+    const deltaY = (toY - fromY) / frames;
+    let frame = 0;
+
+    function animate() {
+        if (frame < frames) {
+            position.x = fromX + deltaX * frame;
+            position.y = fromY + deltaY * frame;
+            draw();
+            frame++;
+            requestAnimationFrame(animate);
+        }
+    }
+    animate();
+}
+
+document.getElementById('moveLeft').addEventListener('click', function() {
+    const fromX = position.x;
+    const fromY = position.y;
+    animateMovement(fromX, fromY, fromX - MOVE_AMOUNT, fromY);
+});
+
+document.getElementById('moveRight').addEventListener('click', function() {
+    const fromX = position.x;
+    const fromY = position.y;
+    animateMovement(fromX, fromY, fromX + MOVE_AMOUNT, fromY);
+});
+
+document.getElementById('moveUp').addEventListener('click', function() {
+    const fromX = position.x;
+    const fromY = position.y;
+    animateMovement(fromX, fromY, fromX, fromY - MOVE_AMOUNT);
+});
+
+document.getElementById('moveDown').addEventListener('click', function() {
+    const fromX = position.x;
+    const fromY = position.y;
+    animateMovement(fromX, fromY, fromX, fromY + MOVE_AMOUNT);
+});
+
+twibbon.src = 'shark.png';
+twibbon.onload = function() {
+    draw();
+};
+
+$('#imageUpload').change(function(e) {
+    var file = e.target.files[0];
+    if (file) {
+        var reader = new FileReader();
+        reader.onload = function(event) {
+            image.src = event.target.result;
+            image.onload = function() {
+                reset();
+                draw();
+                // Add animation when new image is loaded
+                $('#canvasContainer').addClass('animate__animated animate__zoomIn');
+                setTimeout(() => {
+                    $('#canvasContainer').removeClass('animate__animated animate__zoomIn');
+                }, 1000);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Rest of your existing JavaScript code remains the same
+function reset() {
+    scale = 1;
+    position = { x: 0, y: 0 };
+}
+
+function draw() {
+    var iw = image.width;
+    var ih = image.height;
+    var cw = canvas.width;
+    var ch = canvas.height;
+
+    var scaleFactor = Math.min(cw / iw, ch / ih);
+    var iwScaled = iw * scaleFactor * scale;
+    var ihScaled = ih * scaleFactor * scale;
+
+    ctx.clearRect(0, 0, cw, ch);
+    ctx.save();
+    ctx.translate(cw / 2, ch / 2);
+    ctx.scale(scaleFactor * scale, scaleFactor * scale);
+    ctx.translate(-iw / 2 + position.x / (scaleFactor * scale), -ih / 2 + position.y / (scaleFactor * scale));
+    ctx.drawImage(image, 0, 0);
+    ctx.restore();
+    ctx.drawImage(twibbon, 0, 0, cw, ch);
+}
+
+function resizeCanvas() {
+    canvas.width = $('#canvasContainer').width();
+    canvas.height = canvas.width;
+    draw();
+}
+
+$('#zoomControl').on('input', function() {
+    scale = parseFloat($(this).val());
+    draw();
+});
+
+// Add smooth dragging
+canvas.addEventListener('mousedown', function(evt) {
+    dragStart = { x: evt.offsetX - position.x, y: evt.offsetY - position.y };
+    dragged = false;
+}, false);
+
+canvas.addEventListener('mousemove', function(evt) {
+    if (dragStart) {
+        position.x = evt.offsetX - dragStart.x;
+        position.y = evt.offsetY - dragStart.y;
+        draw();
+        dragged = true;
+    }
+}, false);
+
+canvas.addEventListener('mouseup', function(evt) {
+    dragStart = null;
+}, false);
+
+// Add animation to download button
+document.getElementById('saveImage').addEventListener('click', function() {
+    this.classList.add('animate__animated', 'animate__pulse');
+    setTimeout(() => {
+        this.classList.remove('animate__animated', 'animate__pulse');
+    }, 1000);
+    
+    var dataURL = canvas.toDataURL('image/png');
+    var link = document.createElement('a');
+    link.download = 'shark-twibbon.png';
+    link.href = dataURL;
+    link.click();
+});
+
+$(window).resize(resizeCanvas);
+resizeCanvas();
+</script>
+</body>
+</html>
